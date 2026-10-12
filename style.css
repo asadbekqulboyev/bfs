@@ -861,6 +861,30 @@ body {
   100% { transform: rotate(18deg); }
 }
 
+/* Drone SVG Avatar */
+.hero-avatar.drone .hero-drone-svg {
+  display: block;
+  animation: droneHover 0.75s infinite alternate ease-in-out;
+  filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.8));
+}
+.hero-avatar:not(.drone) .hero-drone-svg {
+  display: none;
+}
+
+@keyframes droneHover {
+  0% { transform: translateY(-3px) scale(0.97); }
+  100% { transform: translateY(3px) scale(1.03); }
+}
+
+.drone-rotor {
+  animation: spinDroneRotor 0.22s linear infinite;
+  transform-origin: center;
+}
+@keyframes spinDroneRotor {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* Avatar Types */
 .hero-avatar.bot::before {
   content: '🤖';
@@ -876,12 +900,6 @@ body {
   background: radial-gradient(circle, #fff 0%, #38bdf8 45%, #6366f1 100%);
   box-shadow: 0 0 20px #38bdf8, 0 0 35px #818cf8;
   animation: orbPulse 0.5s infinite alternate ease-in-out;
-}
-.hero-avatar.drone::before {
-  content: '🛸';
-  font-size: 1.65rem;
-  filter: drop-shadow(0 0 14px #34d399);
-  animation: botHover 0.7s infinite alternate ease-in-out;
 }
 .hero-avatar.cat::before {
   content: '🐱';

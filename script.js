@@ -42,7 +42,7 @@ let currentTimerId = null;
 let exploredCount = 0;
 let startTime = 0;
 let lastFoundPath = null;
-let selectedHero = 'human';
+let selectedHero = 'drone';
 
 // Yo'l bo'ylab chiziladigan neon nur nuqtalari
 let animatedPathNodes = [];
@@ -108,6 +108,264 @@ function initAudio() {
   }
 }
 
+// 1. Qidiruvni Boshlash (Start): Quvvatli reaktiv impuls tovushi
+function playBtnStartSfx() {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(300, now);
+  osc.frequency.exponentialRampToValueAtTime(880, now + 0.16);
+  gain.gain.setValueAtTime(0.08, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.23);
+}
+
+// 2. Qadamma-qadam (Step): Tishli mexanik qadam
+function playBtnStepSfx() {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(740, now);
+  osc.frequency.setValueAtTime(1100, now + 0.03);
+  gain.gain.setValueAtTime(0.04, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.08);
+}
+
+// 3. Pauza / Davom ettirish: Vaqt muzlashi xromatik ohangi
+function playBtnPauseSfx(isPausing) {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  const startF = isPausing ? 700 : 380;
+  const endF = isPausing ? 350 : 700;
+  osc.frequency.setValueAtTime(startF, now);
+  osc.frequency.exponentialRampToValueAtTime(endF, now + 0.12);
+  gain.gain.setValueAtTime(0.06, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.16);
+}
+
+// 4. Qahramonni Yugurtirish: Turbo Dvigatel parvozi
+function playBtnReplaySfx() {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(260, now);
+  osc.frequency.exponentialRampToValueAtTime(950, now + 0.24);
+  gain.gain.setValueAtTime(0.07, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.31);
+}
+
+// 5. Yo'lni tozalash: Raqamli qayta orqaga o'rash
+function playBtnClearPathSfx() {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(980, now);
+  osc.frequency.exponentialRampToValueAtTime(320, now + 0.17);
+  gain.gain.setValueAtTime(0.06, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.2);
+}
+
+// 6. Butunlay tozalash: Lazer bug'lantirish / reset portlashi
+function playBtnClearAllSfx() {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(380, now);
+  osc.frequency.exponentialRampToValueAtTime(80, now + 0.24);
+  gain.gain.setValueAtTime(0.08, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.27);
+}
+
+// 7. Rejim tugmalari (Segmented control)
+function playModeClickSfx(mode) {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const freqs = {
+    wall: 220,     // To'q mexanik devor
+    erase: 460,    // Shaffof o'chirg'ich
+    start: 587.33, // D5 zumrad start
+    goal: 880      // A5 neft-qizil maqsad
+  };
+  const type = mode === 'wall' ? 'square' : 'triangle';
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freqs[mode] || 440, now);
+  gain.gain.setValueAtTime(0.05, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.09);
+}
+
+// 8. Qahramon almashtirish: Transformatsiya sintezi
+function playHeroChangeSfx() {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const chords = [523.25, 659.25, 1046.50];
+  chords.forEach((f, i) => {
+    setTimeout(() => {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, now);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    }, i * 35);
+  });
+}
+
+// 9. Dropdown tanlovlar (Andoza va Grid o'lchami)
+function playDropdownSelectSfx() {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(440, now);
+  osc.frequency.exponentialRampToValueAtTime(880, now + 0.06);
+  gain.gain.setValueAtTime(0.05, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.1);
+}
+
+// 10. Tezlik slayderi tovushi
+function playSpeedSlideSfx(val) {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  const freq = 200 + (val * 7);
+  osc.frequency.setValueAtTime(freq, now);
+  gain.gain.setValueAtTime(0.02, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.045);
+}
+
+// 11. O'ZBEKCHA "YUTDINGIZ!" DEB BAQIRIB AYTISH FUNKSIYASI
+function shoutVictoryUzbek() {
+  if (!sfxEnabled) return;
+  try {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance("Yutdingiz!");
+      utterance.lang = 'uz-UZ';
+      utterance.rate = 1.25;  // Jo'shqin, shiddatli
+      utterance.pitch = 1.45; // Baland baqirib aytish
+      utterance.volume = 1.0;
+
+      const voices = window.speechSynthesis.getVoices();
+      const uzVoice = voices.find(v => v.lang.toLowerCase().includes('uz'));
+      if (uzVoice) {
+        utterance.voice = uzVoice;
+      }
+      window.speechSynthesis.speak(utterance);
+    }
+  } catch (e) {}
+
+  playVictoryHorns();
+}
+
+// Tantana shox karnayi / fanfarasi
+function playVictoryHorns() {
+  if (!sfxEnabled) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const hornNotes = [
+      { f: 523.25, time: 0 },
+      { f: 659.25, time: 60 },
+      { f: 783.99, time: 130 },
+      { f: 1046.5, time: 220 }
+    ];
+    hornNotes.forEach(h => {
+      setTimeout(() => {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(h.f, now);
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.38);
+      }, h.time);
+    });
+  } catch (e) {}
+}
+
 // ASMR Kristal / Marimba Qadam Ovoz Sintizatori
 function playCrystalChime(stepIndex, totalSteps) {
   if (!sfxEnabled) return;
@@ -115,7 +373,6 @@ function playCrystalChime(stepIndex, totalSteps) {
     initAudio();
     if (!audioCtx) return;
 
-    // Musiqiy yoqimli pentatonik shkala (C4 -> C6)
     const scale = [
       261.63, 293.66, 329.63, 392.00, 440.00,
       523.25, 587.33, 659.25, 783.99, 880.00, 1046.50
@@ -125,7 +382,6 @@ function playCrystalChime(stepIndex, totalSteps) {
     const baseFreq = scale[noteIdx] || 440;
     const now = audioCtx.currentTime;
 
-    // Asosiy ohang (Sine - yumshoq marimba)
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     osc1.type = 'sine';
@@ -139,7 +395,6 @@ function playCrystalChime(stepIndex, totalSteps) {
     osc1.start(now);
     osc1.stop(now + 0.25);
 
-    // Garmonik kristal tovush (Yuqori shaffof bell)
     const osc2 = audioCtx.createOscillator();
     const gain2 = audioCtx.createGain();
     osc2.type = 'triangle';
@@ -512,6 +767,10 @@ function loadDefault12x12Preset() {
       grid[r][c] = 'X';
     }
   });
+
+  selectedHero = 'drone';
+  if (heroSelect) heroSelect.value = 'drone';
+  if (heroAvatar) heroAvatar.className = 'hero-avatar drone';
 }
 
 function loadUserPreset() {
@@ -722,6 +981,7 @@ modeButtons.forEach(btn => {
     modeButtons.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentDrawMode = btn.dataset.mode;
+    playModeClickSfx(currentDrawMode);
   });
 });
 
@@ -729,12 +989,13 @@ modeButtons.forEach(btn => {
 heroSelect.addEventListener('change', (e) => {
   selectedHero = e.target.value;
   heroAvatar.className = `hero-avatar ${selectedHero}`;
-  playTactileClick(520);
+  playHeroChangeSfx();
 });
 
 // Tezlik slaydri
 speedSlider.addEventListener('input', (e) => {
   const val = Number(e.target.value);
+  playSpeedSlideSfx(val);
   animationSpeedMs = Math.round(350 - (val / 100) * 345);
   let text = 'O\'rtacha';
   if (animationSpeedMs <= 10) text = 'Juda Tez (' + animationSpeedMs + 'ms)';
@@ -999,6 +1260,7 @@ function runHeroDelightfulJourney(path) {
       const { x, y } = getCellPixelCenter(goalCoord[0], goalCoord[1]);
       emitVictoryFireworks(x, y);
       playLushArrivalChime();
+      shoutVictoryUzbek(); // O'zbekcha "Yutdingiz!" deb baqirib aytadi!
 
       victoryTitle.textContent = '🎯 MANZIL FATH ETILDI!';
       victoryDesc.textContent = `Eng qisqa masofa: ${path.length - 1} qadam • Tabriklaymiz!`;
@@ -1049,6 +1311,7 @@ function runHeroDelightfulJourney(path) {
 }
 
 replayHeroBtn.addEventListener('click', () => {
+  playBtnReplaySfx();
   if (lastFoundPath) {
     runHeroDelightfulJourney(lastFoundPath);
   }
@@ -1106,6 +1369,7 @@ function setStatus(state, message) {
 
 // Qadamma-qadam
 stepBtn.addEventListener('click', () => {
+  playBtnStepSfx();
   if (isRunning && !isPaused) togglePause();
   initAudio();
   const res = executeOneStep();
@@ -1113,7 +1377,10 @@ stepBtn.addEventListener('click', () => {
 });
 
 // Pauza
-pauseBtn.addEventListener('click', togglePause);
+pauseBtn.addEventListener('click', () => {
+  playBtnPauseSfx(!isPaused);
+  togglePause();
+});
 
 function togglePause() {
   if (!isRunning) return;
@@ -1195,6 +1462,7 @@ function clearAll() {
 
 // Andozalar
 presetSelect.addEventListener('change', (e) => {
+  playDropdownSelectSfx();
   const val = e.target.value;
   clearVisualsOnly();
 
@@ -1221,6 +1489,7 @@ presetSelect.addEventListener('change', (e) => {
 });
 
 gridSizeSelect.addEventListener('change', (e) => {
+  playDropdownSelectSfx();
   const [r, c] = e.target.value.split('x').map(Number);
   clearVisualsOnly();
   if (e.target.value === '12x12' && presetSelect.value === 'arena_12x12') {
@@ -1321,10 +1590,21 @@ function generateMazePreset() {
   }
 }
 
-// Boshlang'ich yuklash (Default 12x12)
-startBtn.addEventListener('click', startBFS);
-clearPathBtn.addEventListener('click', clearVisualsOnly);
-clearAllBtn.addEventListener('click', clearAll);
+// Boshlang'ich yuklash (Default 12x12 va Fazo Droni)
+startBtn.addEventListener('click', () => {
+  playBtnStartSfx();
+  startBFS();
+});
+
+clearPathBtn.addEventListener('click', () => {
+  playBtnClearPathSfx();
+  clearVisualsOnly();
+});
+
+clearAllBtn.addEventListener('click', () => {
+  playBtnClearAllSfx();
+  clearAll();
+});
 
 loadDefault12x12Preset();
 renderGridDOM();

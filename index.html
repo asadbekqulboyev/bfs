@@ -114,10 +114,10 @@
       <div class="toolbar-group hero-select-group">
         <span class="toolbar-label">Qahramon:</span>
         <select id="heroSelect" class="custom-select hero-dropdown">
-          <option value="human" selected>🏃 Odamcha (Qahramon)</option>
+          <option value="drone" selected>🛸 Fazo Droni (Standart)</option>
+          <option value="human">🏃 Odamcha (Qahramon)</option>
           <option value="bot">🤖 Kiber-Bot</option>
           <option value="orb">⚡ Plazma Shar</option>
-          <option value="drone">🛸 Fazo Droni</option>
         </select>
       </div>
 
@@ -214,8 +214,37 @@
 
             <!-- Smooth Moving Hero Runner -->
             <div id="heroRunner" class="hero-runner">
-              <div class="hero-avatar human" id="heroAvatar">
-                <!-- Human Runner Character SVG -->
+              <div class="hero-avatar drone" id="heroAvatar">
+                <!-- Fazo Droni (Space Drone) SVG -->
+                <svg class="hero-drone-svg" width="38" height="38" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="droneGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#38bdf8"/>
+                      <stop offset="50%" stop-color="#0284c7"/>
+                      <stop offset="100%" stop-color="#1e1b4b"/>
+                    </linearGradient>
+                    <filter id="droneGlow" x="-30%" y="-30%" width="160%" height="160%">
+                      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#38bdf8" flood-opacity="0.9"/>
+                    </filter>
+                  </defs>
+                  <!-- X-qanotlar (Carbon Struts) -->
+                  <line x1="10" y1="11" x2="30" y2="29" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+                  <line x1="30" y1="11" x2="10" y2="29" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+                  <!-- Aylanuvchi Neon Propellerlar -->
+                  <circle class="drone-rotor" cx="10" cy="11" r="5.5" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="5 2.5" filter="url(#droneGlow)"/>
+                  <circle class="drone-rotor" cx="30" cy="11" r="5.5" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="5 2.5" filter="url(#droneGlow)"/>
+                  <circle class="drone-rotor" cx="10" cy="29" r="5.5" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="5 2.5" filter="url(#droneGlow)"/>
+                  <circle class="drone-rotor" cx="30" cy="29" r="5.5" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="5 2.5" filter="url(#droneGlow)"/>
+                  <!-- Markaziy Fazo Korpus -->
+                  <path d="M14 17C14 13.5 16.5 11.5 20 11.5C23.5 11.5 26 13.5 26 17L25 24C25 26.5 22.5 28 20 28C17.5 28 15 26.5 15 24Z" fill="url(#droneGrad)" stroke="#38bdf8" stroke-width="1.4"/>
+                  <!-- Neon Skaner Ko'zi -->
+                  <ellipse cx="20" cy="18.5" rx="3.5" ry="2.2" fill="#38bdf8" filter="url(#droneGlow)"/>
+                  <circle cx="20" cy="18.5" r="1.3" fill="#ffffff"/>
+                  <!-- Pastki Reaktiv Olov -->
+                  <ellipse class="drone-thruster" cx="20" cy="27.5" rx="3" ry="1.5" fill="#f59e0b" filter="url(#droneGlow)"/>
+                </svg>
+
+                <!-- Human Runner Character SVG (tanlanganda ko'rinadi) -->
                 <svg class="hero-human-svg" width="38" height="38" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <defs>
                     <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -230,25 +259,16 @@
                       <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#38bdf8" flood-opacity="0.8"/>
                     </filter>
                   </defs>
-                  <!-- Soft Aura -->
                   <circle cx="20" cy="20" r="17" fill="#0ea5e9" fill-opacity="0.16" filter="url(#humanGlow)"/>
-                  <!-- Head -->
                   <circle cx="20" cy="10.5" r="5" fill="url(#skinGrad)" stroke="#c2410c" stroke-width="0.8"/>
-                  <!-- Hair / Cyber Cap -->
                   <path d="M15 9.5C15 6.5 17 5 20 5C23 5 25 6.5 25 9.5C24 9.5 21 8.5 18 9.5Z" fill="#1e293b"/>
-                  <!-- Eyes / Visor -->
                   <rect x="17.5" y="9.8" width="5.5" height="2" rx="0.8" fill="#38bdf8" filter="url(#humanGlow)"/>
-                  <!-- Torso / Jacket -->
                   <path d="M14.5 17C14.5 15.5 16 14.5 20 14.5C24 14.5 25.5 15.5 25.5 17L24.5 25.5H15.5L14.5 17Z" fill="url(#bodyGrad)" stroke="#60a5fa" stroke-width="1.2"/>
-                  <!-- Energy Belt -->
                   <rect x="16" y="24" width="8" height="2" rx="1" fill="#f59e0b"/>
-                  <!-- Running Arms -->
                   <path class="hero-arm-l" d="M15 17.5L9.5 22.5" stroke="#fed7aa" stroke-width="2.2" stroke-linecap="round"/>
                   <path class="hero-arm-r" d="M25 17.5L30.5 21" stroke="#fed7aa" stroke-width="2.2" stroke-linecap="round"/>
-                  <!-- Running Legs -->
                   <path class="hero-leg-l" d="M17 26L13 34" stroke="#38bdf8" stroke-width="2.8" stroke-linecap="round"/>
                   <path class="hero-leg-r" d="M23 26L27 33.5" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round"/>
-                  <!-- Shoes -->
                   <circle cx="12.5" cy="34" r="1.8" fill="#f8fafc"/>
                   <circle cx="27.5" cy="33.5" r="1.8" fill="#f8fafc"/>
                 </svg>
