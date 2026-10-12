@@ -1,7 +1,7 @@
 /**
- * BFS Pathfinding Game Edition
+ * BFS Pathfinding Game Edition — Ultra Smooth & Satisfying
  * Muallif: Asadbek Qulboyev
- * Haqiqiy o'yin tovushlari, silliq harakatlanuvchi qahramon va to'liq BFS vizualizatori
+ * Haqiqiy o'yin tovushlari, silliq harakatlar va ASMR kristal akkordlar bilan
  */
 
 // --- Boshlang'ich Foydalanuvchi Gridi ---
@@ -44,12 +44,13 @@ let startTime = 0;
 let lastFoundPath = null;
 let selectedHero = 'bot';
 
+// Yo'l bo'ylab chiziladigan neon nur nuqtalari
+let animatedPathNodes = [];
+
 // Tovush va Musiqa tizimi (Web Audio API)
 let sfxEnabled = true;
 let bgmEnabled = false;
 let audioCtx = null;
-let bgmOsc = null;
-let bgmGain = null;
 let bgmIntervalId = null;
 
 // DOM Elementlari
@@ -107,81 +108,179 @@ function initAudio() {
   }
 }
 
-function playTone(freq, type = 'sine', duration = 0.05, gainValue = 0.04) {
+// ASMR Kristal / Marimba Qadam Ovoz Sintizatori
+function playCrystalChime(stepIndex, totalSteps) {
   if (!sfxEnabled) return;
   try {
     initAudio();
     if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    gain.gain.setValueAtTime(gainValue, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + duration);
+
+    // Musiqiy yoqimli pentatonik shkala (C4 -> C6)
+    const scale = [
+      261.63, 293.66, 329.63, 392.00, 440.00,
+      523.25, 587.33, 659.25, 783.99, 880.00, 1046.50
+    ];
+
+    const noteIdx = Math.min(scale.length - 1, Math.floor((stepIndex / Math.max(1, totalSteps - 1)) * scale.length));
+    const baseFreq = scale[noteIdx] || 440;
+    const now = audioCtx.currentTime;
+
+    // Asosiy ohang (Sine - yumshoq marimba)
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(baseFreq, now);
+
+    gain1.gain.setValueAtTime(0.08, now);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.25);
+
+    // Garmonik kristal tovush (Yuqori shaffof bell)
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(baseFreq * 2.01, now);
+
+    gain2.gain.setValueAtTime(0.035, now);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(now);
+    osc2.stop(now + 0.18);
+
   } catch (e) {}
 }
 
-// Skaner ping ovozi (radar)
-function playScanPing(r, c) {
-  if (!sfxEnabled) return;
-  const baseFreq = 260 + (r * 22 + c * 16);
-  playTone(baseFreq, 'sine', 0.035, 0.025);
-}
-
-// Navbatga qo'shilganda qisqa laser chirp
-function playEnqueueChirp() {
+// Skanerlash davridagi mayin sonar pingi
+function playScanSonar(r, c) {
   if (!sfxEnabled) return;
   try {
     initAudio();
     if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const freq = 320 + (r * 18 + c * 12);
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now);
+
+    gain.gain.setValueAtTime(0.02, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.045);
+  } catch (e) {}
+}
+
+// Laser chirp navbatga kirganda
+function playEnqueueLaser() {
+  if (!sfxEnabled) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(500, now);
+    osc.frequency.exponentialRampToValueAtTime(1100, now + 0.03);
+
+    gain.gain.setValueAtTime(0.012, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.035);
+  } catch (e) {}
+}
+
+// Manzilga yetganda: Shaffof va Yuksak Tantanali Akkordlar (Major 9th)
+function playLushArrivalChime() {
+  if (!sfxEnabled) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+
+    // C-Major 9 arpejio akkordlari
+    const notes = [
+      { f: 523.25, delay: 0 },    // C5
+      { f: 659.25, delay: 70 },   // E5
+      { f: 783.99, delay: 140 },  // G5
+      { f: 987.77, delay: 210 },  // B5
+      { f: 1046.50, delay: 290 }, // C6
+      { f: 1318.51, delay: 380 }  // E6
+    ];
+
+    notes.forEach(item => {
+      setTimeout(() => {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(item.f, now);
+
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.5);
+      }, item.delay);
+    });
+  } catch (e) {}
+}
+
+// To'siq chizishda mayin mexanik klik
+function playTactileClick(freq = 200) {
+  if (!sfxEnabled) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.03);
-    gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03);
+    osc.frequency.setValueAtTime(freq, now);
+    gain.gain.setValueAtTime(0.03, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.025);
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.035);
+    osc.start(now);
+    osc.stop(now + 0.03);
   } catch (e) {}
 }
 
-// Qahramon qadam tovushi (Pentaonik ko'tariluvchi akkordlar)
-function playHeroStepSound(index, total) {
+// To'siq topilmaganda buzz
+function playDefeatBuzz() {
   if (!sfxEnabled) return;
-  const pentatonic = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
-  const noteIdx = Math.min(pentatonic.length - 1, Math.floor((index / Math.max(1, total)) * pentatonic.length));
-  const freq = pentatonic[noteIdx] || 440;
-  playTone(freq, 'triangle', 0.12, 0.07);
-}
-
-// G'alaba tantanasi (Arcade Fanfare)
-function playVictoryFanfare() {
-  if (!sfxEnabled) return;
-  const chords = [
-    { freq: 523.25, time: 0 },    // C5
-    { freq: 659.25, time: 80 },   // E5
-    { freq: 783.99, time: 160 },  // G5
-    { freq: 1046.50, time: 240 }, // C6
-    { freq: 1318.51, time: 380 }  // E6
-  ];
-  chords.forEach(note => {
-    setTimeout(() => {
-      playTone(note.freq, 'square', 0.22, 0.06);
-    }, note.time);
-  });
-}
-
-// Yo'l topilmaganda buzz
-function playDefeatSound() {
-  if (!sfxEnabled) return;
-  playTone(130, 'sawtooth', 0.35, 0.08);
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(140, now);
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.35);
+  } catch (e) {}
 }
 
 // Kiber Fon Musiqasi (Arpeggiated Cyber Synth)
@@ -203,7 +302,7 @@ function startCyberBgm() {
   if (!audioCtx) return;
   stopCyberBgm();
 
-  const bassNotes = [130.81, 146.83, 164.81, 196.00, 174.61]; // C3, D3, E3, G3, F3
+  const bassNotes = [130.81, 146.83, 164.81, 196.00, 174.61];
   let noteIdx = 0;
 
   bgmIntervalId = setInterval(() => {
@@ -239,7 +338,7 @@ function stopCyberBgm() {
   }
 }
 
-// ================= ZARRALAR TIZIMI (Canvas FX) =================
+// ================= ZARRALAR VA NEON NUR TIZIMI (Canvas FX) =================
 let particles = [];
 let ctx = null;
 
@@ -255,7 +354,7 @@ function resizeFXCanvas() {
 }
 
 class Particle {
-  constructor(x, y, color, size = 3, vx = 0, vy = 0, life = 1) {
+  constructor(x, y, color, size = 3, vx = 0, vy = 0, life = 1, isStar = false) {
     this.x = x;
     this.y = y;
     this.color = color;
@@ -264,11 +363,15 @@ class Particle {
     this.vy = vy;
     this.life = life;
     this.maxLife = life;
+    this.isStar = isStar;
     this.decay = 0.02 + Math.random() * 0.03;
+    this.gravity = 0.08;
   }
   update() {
     this.x += this.vx;
     this.y += this.vy;
+    this.vy += this.gravity;
+    this.vx *= 0.98;
     this.life -= this.decay;
   }
   draw(c) {
@@ -282,43 +385,71 @@ class Particle {
   }
 }
 
-function emitSparks(x, y, color = '#fbbf24', count = 12) {
+// Qadam uchqunlari
+function emitSparks(x, y, color = '#fbbf24', count = 10) {
   for (let i = 0; i < count; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const speed = 1.5 + Math.random() * 3.5;
+    const speed = 1.2 + Math.random() * 2.8;
     particles.push(new Particle(
       x,
       y,
       color,
-      2 + Math.random() * 2.5,
+      2 + Math.random() * 2,
       Math.cos(angle) * speed,
-      Math.sin(angle) * speed,
-      1
+      Math.sin(angle) * speed - 0.8,
+      0.9
     ));
   }
 }
 
+// Manzilga yetganda Tantanali Feyerverk
 function emitVictoryFireworks(cx, cy) {
-  const colors = ['#fbbf24', '#38bdf8', '#f43f5e', '#34d399', '#a855f7'];
-  for (let i = 0; i < 60; i++) {
+  const colors = ['#fbbf24', '#38bdf8', '#f43f5e', '#34d399', '#a855f7', '#ffffff'];
+  for (let i = 0; i < 75; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const speed = 2 + Math.random() * 6;
+    const speed = 2 + Math.random() * 6.5;
     const color = colors[Math.floor(Math.random() * colors.length)];
     particles.push(new Particle(
       cx,
       cy,
       color,
-      3 + Math.random() * 3.5,
+      2.5 + Math.random() * 3.5,
       Math.cos(angle) * speed,
-      Math.sin(angle) * speed - 1.2,
-      1.5
+      Math.sin(angle) * speed - 2.5,
+      1.6,
+      true
     ));
   }
 }
 
+// Animatsiya sikli (Particle va Neon Nur chizig'i)
 function renderFXLoop() {
   if (ctx) {
     ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+
+    // 1. Bosib o'tilgan yo'l bo'ylab tilla neon nurni chizish
+    if (animatedPathNodes.length > 1) {
+      ctx.save();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = '#fbbf24';
+
+      ctx.beginPath();
+      const p0 = getCellPixelCenter(animatedPathNodes[0][0], animatedPathNodes[0][1]);
+      ctx.moveTo(p0.x, p0.y);
+
+      for (let i = 1; i < animatedPathNodes.length; i++) {
+        const pt = getCellPixelCenter(animatedPathNodes[i][0], animatedPathNodes[i][1]);
+        ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 2. Uchqun zarralarini yangilash
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.update();
@@ -411,7 +542,7 @@ function renderGridDOM() {
   }
 
   resizeFXCanvas();
-  positionHeroAt(start[0], start[1], false);
+  positionHeroAt(start[0], start[1], 0, false);
 }
 
 function getCellElement(r, c) {
@@ -424,8 +555,8 @@ function getCellPixelCenter(r, c) {
   return { x, y };
 }
 
-// Qahramonni koordinataga siljitish
-function positionHeroAt(r, c, animate = true) {
+// Qahramonni koordinata va yo'nalish burchagi bilan siljitish
+function positionHeroAt(r, c, angle = 0, animate = true) {
   if (!heroRunner) return;
   const x = c * (CELL_SIZE + CELL_GAP);
   const y = r * (CELL_SIZE + CELL_GAP);
@@ -433,10 +564,10 @@ function positionHeroAt(r, c, animate = true) {
   if (!animate) {
     heroRunner.style.transition = 'none';
   } else {
-    heroRunner.style.transition = `transform var(--hero-speed) cubic-bezier(0.2, 0.8, 0.2, 1)`;
+    heroRunner.style.transition = `transform var(--hero-speed) cubic-bezier(0.34, 1.56, 0.64, 1)`;
   }
 
-  heroRunner.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  heroRunner.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${angle}deg)`;
 }
 
 // ================= INTERAKSIYA =================
@@ -485,14 +616,14 @@ function applyTool(r, c) {
     grid[r][c] = 'X';
     cellEl.className = 'cell wall';
     cellEl.textContent = 'X';
-    playTone(190, 'square', 0.035, 0.03);
+    playTactileClick(190);
     const { x, y } = getCellPixelCenter(r, c);
     emitSparks(x, y, '#64748b', 6);
   } else if (currentDrawMode === 'erase') {
     grid[r][c] = '.';
     cellEl.className = 'cell';
     cellEl.textContent = '';
-    playTone(280, 'sine', 0.035, 0.03);
+    playTactileClick(280);
   } else if (currentDrawMode === 'start') {
     moveStartTo(r, c);
   } else if (currentDrawMode === 'goal') {
@@ -518,8 +649,8 @@ function moveStartTo(r, c) {
     newEl.className = 'cell start';
     newEl.textContent = 'S';
   }
-  positionHeroAt(r, c, false);
-  playTone(480, 'triangle', 0.05, 0.05);
+  positionHeroAt(r, c, 0, false);
+  playTactileClick(480);
 }
 
 function moveGoalTo(r, c) {
@@ -540,7 +671,7 @@ function moveGoalTo(r, c) {
     newEl.className = 'cell goal';
     newEl.textContent = 'G';
   }
-  playTone(580, 'triangle', 0.05, 0.05);
+  playTactileClick(580);
 }
 
 window.addEventListener('mouseup', () => {
@@ -562,7 +693,7 @@ modeButtons.forEach(btn => {
 heroSelect.addEventListener('change', (e) => {
   selectedHero = e.target.value;
   heroAvatar.className = `hero-avatar ${selectedHero}`;
-  playTone(520, 'sine', 0.08, 0.05);
+  playTactileClick(520);
 });
 
 // Tezlik slaydri
@@ -576,7 +707,6 @@ speedSlider.addEventListener('input', (e) => {
   else text = 'Sekin (' + animationSpeedMs + 'ms)';
   speedValueText.textContent = text;
 
-  // Qahramon tezligi CSS o'zgaruvchisida
   document.documentElement.style.setProperty('--hero-speed', `${Math.max(0.08, animationSpeedMs / 1000)}s`);
 });
 
@@ -586,7 +716,7 @@ soundToggleBtn.addEventListener('click', () => {
   if (sfxEnabled) {
     soundToggleBtn.classList.add('active');
     soundText.textContent = 'SFX: Yoqilgan';
-    playTone(660, 'sine', 0.06, 0.05);
+    playTactileClick(660);
   } else {
     soundToggleBtn.classList.remove('active');
     soundText.textContent = 'SFX: O\'chiq';
@@ -709,7 +839,7 @@ function startBFS() {
   pauseBtn.querySelector('span').textContent = "To'xtatish";
   replayHeroBtn.style.display = 'none';
 
-  positionHeroAt(start[0], start[1], false);
+  positionHeroAt(start[0], start[1], 0, false);
 
   bfsGenerator = bfsStepGenerator(grid, start, goal);
   runNextStepLoop();
@@ -759,7 +889,7 @@ function executeOneStep() {
       }
     }
 
-    playScanPing(r, c);
+    playScanSonar(r, c);
 
   } else if (step.type === 'queued') {
     const [nr, nc] = step.cell;
@@ -767,7 +897,7 @@ function executeOneStep() {
     if (cellEl && !isCellStartOrGoal(nr, nc)) {
       cellEl.classList.add('queued');
     }
-    playEnqueueChirp();
+    playEnqueueLaser();
   } else if (step.type === 'found') {
     return { done: true, value: step };
   } else if (step.type === 'not_found') {
@@ -794,43 +924,74 @@ function finishBFS(result) {
     statPathLength.textContent = `${result.path.length - 1} ta qadam`;
     replayHeroBtn.style.display = 'inline-flex';
 
-    // Qahramonni silliq yo'l bo'ylab yugurtirish
-    runHeroAlongPath(result.path);
+    // Qahramonning manzilga eng optimal va yoqimli sayohati!
+    runHeroDelightfulJourney(result.path);
   } else {
     lastFoundPath = null;
     setStatus('not-found', "Yo'l topilmadi!");
     statPathLength.textContent = 'Mavjud emas';
-    playDefeatSound();
+    playDefeatBuzz();
   }
 }
 
-// QAHRAMONNING SILIQ HARAKATI VA OVOZLARI
-function runHeroAlongPath(path) {
+// ================= MANZILGA ENG OPTIMAL VA YOQIMLI BORISH =================
+function runHeroDelightfulJourney(path) {
   if (!path || path.length === 0) return;
 
   victoryBanner.classList.remove('show');
-  positionHeroAt(path[0][0], path[0][1], false);
+  heroRunner.classList.remove('victory');
+  heroRunner.classList.add('dashing');
+
+  animatedPathNodes = [];
+  positionHeroAt(path[0][0], path[0][1], 0, false);
+  animatedPathNodes.push(path[0]);
 
   let idx = 0;
-  const stepDelay = Math.max(90, Math.min(220, animationSpeedMs * 2.2));
+  // Harakat vaqti (tezlikka moslashuvchan, silliq va maroqli)
+  const stepDelay = Math.max(80, Math.min(190, animationSpeedMs * 2.1));
 
   function stepNext() {
     if (idx >= path.length) {
-      // Maqsadga yetdi!
+      // MANZILGA YETIB BORILDI (DELIGHT CLIMAX)
+      heroRunner.classList.remove('dashing');
+      heroRunner.classList.add('victory');
+
       const goalCoord = path[path.length - 1];
+      const goalEl = getCellElement(goalCoord[0], goalCoord[1]);
+      if (goalEl) goalEl.classList.add('goal-reached');
+
       const { x, y } = getCellPixelCenter(goalCoord[0], goalCoord[1]);
       emitVictoryFireworks(x, y);
-      playVictoryFanfare();
+      playLushArrivalChime();
 
-      victoryTitle.textContent = 'MAQSAD FATH ETILDI!';
-      victoryDesc.textContent = `Eng qisqa masofa: ${path.length - 1} qadam`;
+      victoryTitle.textContent = '🎯 MANZIL FATH ETILDI!';
+      victoryDesc.textContent = `Eng qisqa masofa: ${path.length - 1} qadam • Tabriklaymiz!`;
       victoryBanner.classList.add('show');
-      setTimeout(() => victoryBanner.classList.remove('show'), 3800);
+
+      setTimeout(() => {
+        victoryBanner.classList.remove('show');
+        heroRunner.classList.remove('victory');
+        if (goalEl) goalEl.classList.remove('goal-reached');
+      }, 4000);
       return;
     }
 
     const [r, c] = path[idx];
-    positionHeroAt(r, c, true);
+
+    // Yo'nalish burchagini hisoblash (burilishlar silliq ko'rinishi uchun)
+    let headingAngle = 0;
+    if (idx < path.length - 1) {
+      const [nextR, nextC] = path[idx + 1];
+      const dr = nextR - r;
+      const dc = nextC - c;
+      if (dc === 1) headingAngle = 0;      // O'ng
+      else if (dr === 1) headingAngle = 90; // Past
+      else if (dc === -1) headingAngle = 180; // Chap
+      else if (dr === -1) headingAngle = 270; // Yuqori
+    }
+
+    positionHeroAt(r, c, headingAngle, true);
+    animatedPathNodes.push([r, c]);
 
     const cellEl = getCellElement(r, c);
     if (cellEl && !isCellStartOrGoal(r, c)) {
@@ -839,10 +1000,10 @@ function runHeroAlongPath(path) {
       cellEl.textContent = '*';
     }
 
-    // Har bir qadamda uchqunlar va musiqiy tovush
+    // Har bir qadamda oltin uchqunlar va kristal marimba musiqasi
     const { x, y } = getCellPixelCenter(r, c);
-    emitSparks(x, y, '#fbbf24', 10);
-    playHeroStepSound(idx, path.length);
+    emitSparks(x, y, '#fbbf24', 9);
+    playCrystalChime(idx, path.length);
 
     idx++;
     setTimeout(stepNext, stepDelay);
@@ -853,7 +1014,7 @@ function runHeroAlongPath(path) {
 
 replayHeroBtn.addEventListener('click', () => {
   if (lastFoundPath) {
-    runHeroAlongPath(lastFoundPath);
+    runHeroDelightfulJourney(lastFoundPath);
   }
 });
 
@@ -938,10 +1099,12 @@ function clearVisualsOnly() {
   isRunning = false;
   isPaused = false;
   bfsGenerator = null;
+  animatedPathNodes = [];
 
   startBtn.style.display = 'inline-flex';
   pauseBtn.style.display = 'none';
   victoryBanner.classList.remove('show');
+  heroRunner.classList.remove('victory', 'dashing');
   setStatus('ready', 'Tayyor');
 
   statPathLength.textContent = '—';
@@ -958,7 +1121,7 @@ function clearVisualsOnly() {
       const cellEl = getCellElement(r, c);
       if (!cellEl) continue;
 
-      cellEl.classList.remove('visited', 'queued', 'path', 'current-head');
+      cellEl.classList.remove('visited', 'queued', 'path', 'current-head', 'goal-reached');
       if (grid[r][c] === 'S') {
         cellEl.className = 'cell start';
         cellEl.textContent = 'S';
@@ -975,7 +1138,7 @@ function clearVisualsOnly() {
     }
   }
 
-  positionHeroAt(start[0], start[1], false);
+  positionHeroAt(start[0], start[1], 0, false);
 }
 
 function clearAll() {
