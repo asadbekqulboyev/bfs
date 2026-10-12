@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BFS Pathfinding Game — Kenglik Bo'yicha Qidiruv</title>
+  <meta name="description" content="Gridda BFS (Breadth-First Search) algoritmini haqiqiy o'yindek silliq harakatlar, qahramon animatsiyasi va boy ovoz effektlari bilan vizuallashtiruvchi zamonaviy dastur.">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="background-glow glow-1"></div>
+  <div class="background-glow glow-2"></div>
+  <div class="background-glow glow-3"></div>
+
+  <div class="app-container">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="6" height="6" rx="1.5"></rect>
+            <rect x="16" y="2" width="6" height="6" rx="1.5"></rect>
+            <rect x="9" y="16" width="6" height="6" rx="1.5"></rect>
+            <path d="M5 8v5a2 2 0 0 0 2 2h2"></path>
+            <path d="M19 8v5a2 2 0 0 1-2 2h-2"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="title-row">
+            <h1>BFS Pathfinding Game</h1>
+            <span class="badge version">Arcade v3.0</span>
+          </div>
+          <p class="subtitle">Jonli qahramon harakati, silliq animatsiya va haqiqiy o'yin ovozlari bilan BFS algoritmi</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- BGM Music Toggle -->
+        <button id="bgmToggleBtn" class="btn-game-toggle" title="Kiber-musiqa fon ovozini yoqish/o'chirish">
+          <span class="icon">🎵</span>
+          <span id="bgmText">Fon Musiqa: O'chiq</span>
+        </button>
+
+        <!-- SFX Sound Toggle -->
+        <button id="soundToggleBtn" class="btn-game-toggle active" title="Ovoz effektlarini yoqish/o'chirish">
+          <span class="icon">🔊</span>
+          <span id="soundText">SFX: Yoqilgan</span>
+        </button>
+
+        <div class="status-indicator" id="statusBadge">
+          <span class="status-dot"></span>
+          <span class="status-text" id="statusText">Tayyor</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTROL TOOLBAR -->
+    <section class="toolbar-panel glass">
+      <div class="toolbar-group main-controls">
+        <button id="startBtn" class="btn btn-primary pulse-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>O'yinni Boshlash</span>
+        </button>
+
+        <button id="stepBtn" class="btn btn-secondary" title="Bir qadam oldinga skan qilish">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+            <line x1="19" y1="5" x2="19" y2="19"></line>
+          </svg>
+          <span>Qadamma-Qadam</span>
+        </button>
+
+        <button id="replayHeroBtn" class="btn btn-secondary" style="display:none;" title="Qahramonni yo'l bo'ylab qayta yugurtirish">
+          <span class="icon">🏃</span>
+          <span>Qahramonni Yugurtirish</span>
+        </button>
+
+        <button id="pauseBtn" class="btn btn-secondary" style="display:none;" title="Pauza / Davom ettirish">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+            <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+          </svg>
+          <span>To'xtatish</span>
+        </button>
+
+        <button id="clearPathBtn" class="btn btn-ghost" title="Faqat izlangan yo'l va animatsiyani tozalash">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+            <path d="M8 16H3v5"></path>
+          </svg>
+          <span>Yo'lni tozalash</span>
+        </button>
+
+        <button id="clearAllBtn" class="btn btn-ghost danger" title="Butun grid va to'siqlarni tozalash">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Tozalash</span>
+        </button>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- HERO SELECTOR -->
+      <div class="toolbar-group hero-select-group">
+        <span class="toolbar-label">Qahramon:</span>
+        <select id="heroSelect" class="custom-select hero-dropdown">
+          <option value="bot" selected>🤖 Kiber-Bot</option>
+          <option value="orb">⚡ Plazma Shar</option>
+          <option value="drone">🛸 Fazo Droni</option>
+          <option value="cat">🐱 Piksel Qahramon</option>
+        </select>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- TOOLS & MODES -->
+      <div class="toolbar-group tools-group">
+        <span class="toolbar-label">Rejim:</span>
+        <div class="segmented-control" id="drawModeSelector">
+          <button class="segment-btn active" data-mode="wall" title="Devor qo'yish (X)">
+            <span class="mode-icon wall-dot"></span>
+            Devor (X)
+          </button>
+          <button class="segment-btn" data-mode="erase" title="To'siqni o'chirish">
+            <span class="mode-icon erase-dot"></span>
+            O'chirish
+          </button>
+          <button class="segment-btn" data-mode="start" title="Start (S) nuqtasini ko'chirish">
+            <span class="mode-icon start-dot">S</span>
+            Start
+          </button>
+          <button class="segment-btn" data-mode="goal" title="Goal (G) nuqtasini ko'chirish">
+            <span class="mode-icon goal-dot">G</span>
+            Goal
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- PRESETS & GENERATION -->
+      <div class="toolbar-group presets-group">
+        <span class="toolbar-label">Andoza:</span>
+        <select id="presetSelect" class="custom-select">
+          <option value="user_code" selected>⚡ Foydalanuvchi Kodi (10x5)</option>
+          <option value="maze">🌀 Labirint (Maze)</option>
+          <option value="random">🎲 Tasodifiy to'siqlar</option>
+          <option value="chokepoint">⏳ Tor yo'lak (Chokepoint)</option>
+          <option value="zigzag">⚡ Zig-Zag Qiyin yo'l</option>
+          <option value="empty">⬜ Bo'sh Maydon</option>
+        </select>
+
+        <select id="gridSizeSelect" class="custom-select">
+          <option value="10x5" selected>10 x 5 (Koddagi)</option>
+          <option value="12x12">12 x 12 (Kvadrat)</option>
+          <option value="16x24">16 x 24 (Katta)</option>
+          <option value="20x30">20 x 30 (Keng)</option>
+        </select>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- SPEED SLIDER -->
+      <div class="toolbar-group speed-group">
+        <div class="speed-label-row">
+          <span class="toolbar-label">Tezlik:</span>
+          <span class="speed-value" id="speedValueText">Tez (35ms)</span>
+        </div>
+        <input type="range" id="speedSlider" min="1" max="100" value="70" class="custom-range" title="Tezlikni sozlash">
+      </div>
+    </section>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="main-workspace">
+      <!-- LEFT: INTERACTIVE GRID CANVAS WITH HERO RUNNER -->
+      <section class="grid-section glass">
+        <div class="grid-card-header">
+          <div class="grid-meta">
+            <div class="grid-title-row">
+              <span class="grid-title">Interaktiv Grid Maydoni</span>
+              <span class="game-tag">O'yin Rejimi Faol</span>
+            </div>
+            <span class="grid-instructions">Devor chizish uchun sichqonchani suring • S va G nuqtalarini drag & drop qiling</span>
+          </div>
+          <div class="legend-pills">
+            <span class="legend-item"><span class="dot-start">S</span> Boshlanish</span>
+            <span class="legend-item"><span class="dot-goal">G</span> Maqsad</span>
+            <span class="legend-item"><span class="dot-wall"></span> Devor (X)</span>
+            <span class="legend-item"><span class="dot-queued"></span> Navbatda</span>
+            <span class="legend-item"><span class="dot-visited"></span> Tekshirilgan</span>
+            <span class="legend-item"><span class="dot-path">*</span> Eng Qisqa Yo'l</span>
+          </div>
+        </div>
+
+        <!-- THE ACTUAL GRID CONTAINER WITH PARTICLE CANVAS & MOVING HERO -->
+        <div class="grid-wrapper" id="gridWrapper">
+          <div class="grid-board-container" id="gridBoardContainer">
+            <!-- Grid Board -->
+            <div class="grid-board" id="gridBoard"></div>
+
+            <!-- Particle Canvas Overlay for Fireworks, Sparks and Beams -->
+            <canvas id="fxCanvas" class="fx-canvas"></canvas>
+
+            <!-- Smooth Moving Hero Runner -->
+            <div id="heroRunner" class="hero-runner">
+              <div class="hero-avatar bot" id="heroAvatar">
+                <div class="hero-core"></div>
+                <div class="hero-ring"></div>
+                <div class="hero-particles"></div>
+              </div>
+            </div>
+
+            <!-- Dynamic Floating Banner for Victory -->
+            <div id="victoryBanner" class="victory-banner">
+              <div class="banner-content">
+                <div class="banner-icon">🏆</div>
+                <h3 id="victoryTitle">MAQSAD FATH ETILDI!</h3>
+                <p id="victoryDesc">Eng qisqa yo'l: 9 qadam</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUMMARY STATS BAR -->
+        <div class="stats-ribbon">
+          <div class="stat-card">
+            <span class="stat-label">Yo'l Uzunligi (Qadamlar)</span>
+            <span class="stat-value highlight-gold" id="statPathLength">—</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Tekshirilgan Kataklar</span>
+            <span class="stat-value highlight-cyan" id="statVisited">—</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Navbat Hajmi (Queue)</span>
+            <span class="stat-value highlight-purple" id="statQueueSize">—</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Sarflangan Vaqt</span>
+            <span class="stat-value" id="statTime">—</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: LIVE BFS INSPECTOR & CODE VIEWER -->
+      <aside class="inspector-section">
+        <!-- LIVE QUEUE MONITOR -->
+        <div class="inspector-card glass">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+              <h3>Jonli FIFO Navbat (Queue)</h3>
+            </div>
+            <span class="sub-badge" id="queueCountBadge">0 element</span>
+          </div>
+          <div class="current-node-box">
+            <span class="cur-label">Hozirgi katak:</span>
+            <span class="cur-coords" id="currentNodeCoord">[—, —]</span>
+            <span class="cur-status" id="currentNodeDesc">Kutilmoqda</span>
+          </div>
+          <div class="queue-flow-container">
+            <div class="queue-flow-header">
+              <span>FIFO Chiqish (queue.shift) ⬅️</span>
+              <span>➡️ Kirish (queue.push)</span>
+            </div>
+            <div class="queue-chips" id="queueChips">
+              <span class="queue-empty-text">Navbat bo'sh</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BFS STEP-BY-STEP EXPLANATION & CODE TABS -->
+        <div class="inspector-card glass code-card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+              <h3>Algoritm va Kod Mantiqi</h3>
+            </div>
+            <div class="tab-buttons">
+              <button class="tab-btn active" data-tab="steps">Qoidalar</button>
+              <button class="tab-btn" data-tab="code">Asl Kod</button>
+            </div>
+          </div>
+
+          <!-- TAB 1: HOW BFS WORKS -->
+          <div class="tab-pane active" id="tabSteps">
+            <div class="bfs-step-item" id="ruleStep1">
+              <div class="step-num">1</div>
+              <div class="step-body">
+                <strong>Navbatdan olish (FIFO):</strong>
+                <code>const [r, c] = queue.shift()</code>
+                <p>Navbat boshidagi birinchi katak olinadi va skanerlanadi.</p>
+              </div>
+            </div>
+
+            <div class="bfs-step-item" id="ruleStep2">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <strong>To'siq va Chegara tekshiruvi:</strong>
+                <code>grid[nr][nc] === 'X' || nr &lt; 0...</code>
+                <p>Devorlar va chegara tekshirilib, o'tib bo'lmaydigan joylar o'tkazib yuboriladi.</p>
+              </div>
+            </div>
+
+            <div class="bfs-step-item" id="ruleStep3">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <strong>Takrorlanishning oldini olish:</strong>
+                <code>visited.has(`${nr},${nc}`)</code>
+                <p>Bir marta ko'rilgan katak qayta navbatga qo'shilmaydi (optimal yo'l garovi).</p>
+              </div>
+            </div>
+
+            <div class="bfs-step-item" id="ruleStep4">
+              <div class="step-num">4</div>
+              <div class="step-body">
+                <strong>Ota-onani saqlash va Navbatga qo'shish:</strong>
+                <code>parent[key] = `${r},${c}`; queue.push([nr,nc])</code>
+                <p>Yo'lni qahramon bosib o'tishi uchun har bir katakning ota-onasi saqlanadi.</p>
+              </div>
+            </div>
+
+            <div class="info-callout">
+              <span class="info-icon">🎮</span>
+              <p><strong>BFS kafolati:</strong> Bir xil vaznli maydonda BFS doimo <em>eng qisqa</em> va <em>eng kam harakatli</em> yo'lni topadi!</p>
+            </div>
+          </div>
+
+          <!-- TAB 2: ORIGINAL JAVASCRIPT CODE -->
+          <div class="tab-pane" id="tabCode">
+            <pre class="code-viewer"><code><span class="c-comment">// Siz taqdim etgan BFS kodi:</span>
+<span class="c-keyword">function</span> <span class="c-func">bfs</span>(grid, start, goal) {
+  <span class="c-keyword">const</span> queue = [start];
+  <span class="c-keyword">const</span> visited = <span class="c-keyword">new</span> <span class="c-class">Set</span>();
+  visited.<span class="c-func">add</span>(<span class="c-str">`${start[0]},${start[1]}`</span>);
+  <span class="c-keyword">const</span> parent = {};
+  <span class="c-keyword">const</span> rows = grid.length;
+  <span class="c-keyword">const</span> cols = grid[0].length;
+  <span class="c-keyword">const</span> directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+  <span class="c-keyword">while</span> (queue.length &gt; 0) {
+    <span class="c-keyword">const</span> [r, c] = queue.<span class="c-func">shift</span>();
+    <span class="c-keyword">if</span> (r === goal[0] &amp;&amp; c === goal[1]) {
+      <span class="c-keyword">return</span> <span class="c-func">reconstructPath</span>(parent, start, goal);
+    }
+    <span class="c-keyword">for</span> (<span class="c-keyword">const</span> [dr, dc] <span class="c-keyword">of</span> directions) {
+      <span class="c-keyword">const</span> nr = r + dr;
+      <span class="c-keyword">const</span> nc = c + dc;
+      <span class="c-keyword">if</span> (nr &lt; 0 || nr &gt;= rows || nc &lt; 0 || nc &gt;= cols) <span class="c-keyword">continue</span>;
+      <span class="c-keyword">if</span> (grid[nr][nc] === <span class="c-str">'X'</span>) <span class="c-keyword">continue</span>;
+      <span class="c-keyword">const</span> key = <span class="c-str">`${nr},${nc}`</span>;
+      <span class="c-keyword">if</span> (visited.<span class="c-func">has</span>(key)) <span class="c-keyword">continue</span>;
+      visited.<span class="c-func">add</span>(key);
+      parent[key] = <span class="c-str">`${r},${c}`</span>;
+      queue.<span class="c-func">push</span>([nr, nc]);
+    }
+  }
+  <span class="c-keyword">return</span> <span class="c-keyword">null</span>;
+}</code></pre>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+      <span>🎮 BFS Pathfinding Game Edition</span>
+      <span>•</span>
+      <span>Haqiqiy o'yin tovushlari va silliq harakatlar</span>
+      <span>•</span>
+      <span>Murakkablik: O(V + E)</span>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
