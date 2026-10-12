@@ -39,6 +39,12 @@
       </div>
 
       <div class="header-actions">
+        <!-- 3D Isometric View Toggle -->
+        <button id="view3dToggleBtn" class="btn-game-toggle active" title="3D Izometrik ko'rinishni yoqish / o'chirish">
+          <span class="icon">📐</span>
+          <span id="view3dText">3D Rejim: Yoqilgan</span>
+        </button>
+
         <!-- BGM Music Toggle -->
         <button id="bgmToggleBtn" class="btn-game-toggle" title="Kiber-musiqa fon ovozini yoqish/o'chirish">
           <span class="icon">🎵</span>
@@ -204,7 +210,7 @@
         </div>
 
         <!-- THE ACTUAL GRID CONTAINER WITH PARTICLE CANVAS & MOVING HERO -->
-        <div class="grid-wrapper" id="gridWrapper">
+        <div class="grid-wrapper view-3d" id="gridWrapper">
           <div class="grid-board-container" id="gridBoardContainer">
             <!-- Grid Board -->
             <div class="grid-board" id="gridBoard"></div>

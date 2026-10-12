@@ -78,6 +78,11 @@ const gridSizeSelect = document.getElementById('gridSizeSelect');
 const speedSlider = document.getElementById('speedSlider');
 const speedValueText = document.getElementById('speedValueText');
 
+let is3DView = true;
+const view3dToggleBtn = document.getElementById('view3dToggleBtn');
+const view3dText = document.getElementById('view3dText');
+const gridWrapper = document.getElementById('gridWrapper');
+
 const soundToggleBtn = document.getElementById('soundToggleBtn');
 const soundText = document.getElementById('soundText');
 const bgmToggleBtn = document.getElementById('bgmToggleBtn');
@@ -364,6 +369,27 @@ function playVictoryHorns() {
       }, h.time);
     });
   } catch (e) {}
+}
+
+// 12. 3D Rejim o'tish tovushi
+function play3DToggleSfx(is3d) {
+  if (!sfxEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  const startF = is3d ? 320 : 680;
+  const endF = is3d ? 680 : 320;
+  osc.frequency.setValueAtTime(startF, now);
+  osc.frequency.exponentialRampToValueAtTime(endF, now + 0.14);
+  gain.gain.setValueAtTime(0.06, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.17);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.18);
 }
 
 // ASMR Kristal / Marimba Qadam Ovoz Sintizatori
@@ -1021,6 +1047,41 @@ soundToggleBtn.addEventListener('click', () => {
 });
 
 bgmToggleBtn.addEventListener('click', toggleBGM);
+
+// 3D Rejim almashtirish
+view3dToggleBtn.addEventListener('click', toggle3DView);
+
+function toggle3DView() {
+  is3DView = !is3DView;
+  if (is3DView) {
+    gridWrapper.classList.add('view-3d');
+    view3dToggleBtn.classList.add('active');
+    view3dText.textContent = "3D Rejim: Yoqilgan";
+    play3DToggleSfx(true);
+  } else {
+    gridWrapper.classList.remove('view-3d');
+    gridBoardContainer.style.transform = '';
+    view3dToggleBtn.classList.remove('active');
+    view3dText.textContent = "3D Rejim: O'chiq";
+    play3DToggleSfx(false);
+  }
+}
+
+// 3D Maydonni sichqoncha bilan mayin tebratish (Interactive Parallax)
+gridWrapper.addEventListener('mousemove', (e) => {
+  if (!is3DView || isMouseDown) return;
+  const rect = gridWrapper.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) / rect.width - 0.5;
+  const my = (e.clientY - rect.top) / rect.height - 0.5;
+  const tiltX = 44 - my * 10;
+  const tiltZ = -18 + mx * 10;
+  gridBoardContainer.style.transform = `rotateX(${tiltX}deg) rotateZ(${tiltZ}deg) scale(0.92)`;
+});
+
+gridWrapper.addEventListener('mouseleave', () => {
+  if (!is3DView) return;
+  gridBoardContainer.style.transform = 'rotateX(44deg) rotateZ(-18deg) scale(0.92)';
+});
 
 // Tab almashtirish
 document.querySelectorAll('.tab-btn').forEach(btn => {
