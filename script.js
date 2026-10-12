@@ -18,12 +18,12 @@ const USER_PRESET = [
   ['.', ',', '0', '.', '.']
 ];
 
-// Grid holati
-let rows = 10;
-let cols = 5;
+// Grid holati (Standart 12x12)
+let rows = 12;
+let cols = 12;
 let grid = [];
-let start = [0, 0];
-let goal = [7, 2];
+let start = [1, 1];
+let goal = [10, 10];
 const CELL_SIZE = 44;
 const CELL_GAP = 4;
 
@@ -42,7 +42,7 @@ let currentTimerId = null;
 let exploredCount = 0;
 let startTime = 0;
 let lastFoundPath = null;
-let selectedHero = 'bot';
+let selectedHero = 'human';
 
 // Yo'l bo'ylab chiziladigan neon nur nuqtalari
 let animatedPathNodes = [];
@@ -476,6 +476,42 @@ function createEmptyGrid(r, c) {
   goal = [Math.min(rows - 1, 7), Math.min(cols - 1, 2)];
   grid[start[0]][start[1]] = 'S';
   grid[goal[0]][goal[1]] = 'G';
+}
+
+function loadDefault12x12Preset() {
+  rows = 12;
+  cols = 12;
+  if (gridSizeSelect) gridSizeSelect.value = '12x12';
+  grid = [];
+  for (let r = 0; r < rows; r++) {
+    const row = [];
+    for (let c = 0; c < cols; c++) {
+      row.push('.');
+    }
+    grid.push(row);
+  }
+
+  start = [1, 1];
+  goal = [10, 10];
+  grid[start[0]][start[1]] = 'S';
+  grid[goal[0]][goal[1]] = 'G';
+
+  // Chiroyli, optimal labirintsimon to'siqlar
+  const defaultWalls = [
+    [1, 3], [2, 3], [3, 3], [4, 3],
+    [4, 4], [4, 5], [4, 6], [4, 7],
+    [2, 7], [3, 7], [5, 7], [6, 7],
+    [7, 2], [7, 3], [7, 4], [7, 5],
+    [9, 5], [9, 6], [9, 7], [9, 8],
+    [6, 9], [7, 9], [8, 9]
+  ];
+
+  defaultWalls.forEach(([r, c]) => {
+    if (r < rows && c < cols) {
+      if ((r === start[0] && c === start[1]) || (r === goal[0] && c === goal[1])) return;
+      grid[r][c] = 'X';
+    }
+  });
 }
 
 function loadUserPreset() {
@@ -1162,7 +1198,11 @@ presetSelect.addEventListener('change', (e) => {
   const val = e.target.value;
   clearVisualsOnly();
 
-  if (val === 'user_code') {
+  if (val === 'arena_12x12') {
+    gridSizeSelect.value = '12x12';
+    loadDefault12x12Preset();
+    renderGridDOM();
+  } else if (val === 'user_code') {
     gridSizeSelect.value = '10x5';
     loadUserPreset();
     renderGridDOM();
@@ -1183,7 +1223,9 @@ presetSelect.addEventListener('change', (e) => {
 gridSizeSelect.addEventListener('change', (e) => {
   const [r, c] = e.target.value.split('x').map(Number);
   clearVisualsOnly();
-  if (e.target.value === '10x5' && presetSelect.value === 'user_code') {
+  if (e.target.value === '12x12' && presetSelect.value === 'arena_12x12') {
+    loadDefault12x12Preset();
+  } else if (e.target.value === '10x5' && presetSelect.value === 'user_code') {
     loadUserPreset();
   } else {
     createEmptyGrid(r, c);
@@ -1279,12 +1321,12 @@ function generateMazePreset() {
   }
 }
 
-// Boshlang'ich yuklash
+// Boshlang'ich yuklash (Default 12x12)
 startBtn.addEventListener('click', startBFS);
 clearPathBtn.addEventListener('click', clearVisualsOnly);
 clearAllBtn.addEventListener('click', clearAll);
 
-loadUserPreset();
+loadDefault12x12Preset();
 renderGridDOM();
 initFXCanvas();
 renderFXLoop();

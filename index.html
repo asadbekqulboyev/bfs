@@ -114,10 +114,10 @@
       <div class="toolbar-group hero-select-group">
         <span class="toolbar-label">Qahramon:</span>
         <select id="heroSelect" class="custom-select hero-dropdown">
-          <option value="bot" selected>🤖 Kiber-Bot</option>
+          <option value="human" selected>🏃 Odamcha (Qahramon)</option>
+          <option value="bot">🤖 Kiber-Bot</option>
           <option value="orb">⚡ Plazma Shar</option>
           <option value="drone">🛸 Fazo Droni</option>
-          <option value="cat">🐱 Piksel Qahramon</option>
         </select>
       </div>
 
@@ -152,8 +152,9 @@
       <div class="toolbar-group presets-group">
         <span class="toolbar-label">Andoza:</span>
         <select id="presetSelect" class="custom-select">
-          <option value="user_code" selected>⚡ Foydalanuvchi Kodi (10x5)</option>
+          <option value="arena_12x12" selected>⚡ Standart Arena (12x12)</option>
           <option value="maze">🌀 Labirint (Maze)</option>
+          <option value="user_code">📜 Foydalanuvchi Kodi (10x5)</option>
           <option value="random">🎲 Tasodifiy to'siqlar</option>
           <option value="chokepoint">⏳ Tor yo'lak (Chokepoint)</option>
           <option value="zigzag">⚡ Zig-Zag Qiyin yo'l</option>
@@ -161,8 +162,8 @@
         </select>
 
         <select id="gridSizeSelect" class="custom-select">
-          <option value="10x5" selected>10 x 5 (Koddagi)</option>
-          <option value="12x12">12 x 12 (Kvadrat)</option>
+          <option value="12x12" selected>12 x 12 (Standart)</option>
+          <option value="10x5">10 x 5 (Koddagi)</option>
           <option value="16x24">16 x 24 (Katta)</option>
           <option value="20x30">20 x 30 (Keng)</option>
         </select>
@@ -213,10 +214,44 @@
 
             <!-- Smooth Moving Hero Runner -->
             <div id="heroRunner" class="hero-runner">
-              <div class="hero-avatar bot" id="heroAvatar">
-                <div class="hero-core"></div>
-                <div class="hero-ring"></div>
-                <div class="hero-particles"></div>
+              <div class="hero-avatar human" id="heroAvatar">
+                <!-- Human Runner Character SVG -->
+                <svg class="hero-human-svg" width="38" height="38" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#38bdf8"/>
+                      <stop offset="100%" stop-color="#2563eb"/>
+                    </linearGradient>
+                    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#fed7aa"/>
+                      <stop offset="100%" stop-color="#f97316"/>
+                    </linearGradient>
+                    <filter id="humanGlow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#38bdf8" flood-opacity="0.8"/>
+                    </filter>
+                  </defs>
+                  <!-- Soft Aura -->
+                  <circle cx="20" cy="20" r="17" fill="#0ea5e9" fill-opacity="0.16" filter="url(#humanGlow)"/>
+                  <!-- Head -->
+                  <circle cx="20" cy="10.5" r="5" fill="url(#skinGrad)" stroke="#c2410c" stroke-width="0.8"/>
+                  <!-- Hair / Cyber Cap -->
+                  <path d="M15 9.5C15 6.5 17 5 20 5C23 5 25 6.5 25 9.5C24 9.5 21 8.5 18 9.5Z" fill="#1e293b"/>
+                  <!-- Eyes / Visor -->
+                  <rect x="17.5" y="9.8" width="5.5" height="2" rx="0.8" fill="#38bdf8" filter="url(#humanGlow)"/>
+                  <!-- Torso / Jacket -->
+                  <path d="M14.5 17C14.5 15.5 16 14.5 20 14.5C24 14.5 25.5 15.5 25.5 17L24.5 25.5H15.5L14.5 17Z" fill="url(#bodyGrad)" stroke="#60a5fa" stroke-width="1.2"/>
+                  <!-- Energy Belt -->
+                  <rect x="16" y="24" width="8" height="2" rx="1" fill="#f59e0b"/>
+                  <!-- Running Arms -->
+                  <path class="hero-arm-l" d="M15 17.5L9.5 22.5" stroke="#fed7aa" stroke-width="2.2" stroke-linecap="round"/>
+                  <path class="hero-arm-r" d="M25 17.5L30.5 21" stroke="#fed7aa" stroke-width="2.2" stroke-linecap="round"/>
+                  <!-- Running Legs -->
+                  <path class="hero-leg-l" d="M17 26L13 34" stroke="#38bdf8" stroke-width="2.8" stroke-linecap="round"/>
+                  <path class="hero-leg-r" d="M23 26L27 33.5" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round"/>
+                  <!-- Shoes -->
+                  <circle cx="12.5" cy="34" r="1.8" fill="#f8fafc"/>
+                  <circle cx="27.5" cy="33.5" r="1.8" fill="#f8fafc"/>
+                </svg>
               </div>
             </div>
 
